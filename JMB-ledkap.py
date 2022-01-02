@@ -20,22 +20,50 @@ import chardet
 DOMOTICZ_IP = 'http://127.0.0.1:8080'
 
 def getSetting(id):
-   #print(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id))
-   r = requests.get(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id))
+   try:
+       #print(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id))
+       r = requests.get(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id))
+       siteresponse = r.json()
+       if (r.ok): # response check is ok
+          DeviceLevel = int(siteresponse['result'][0]['Level'])
+          #print(DeviceLevel)
+          DeviceState = siteresponse['result'][0]['Data']
+          #print(DeviceState)
+          if DeviceState == "Off":
+            return 0
+          elif DeviceLevel >= 0 and DeviceLevel <= 100: # Extra safety levels must be between 0 and 100
+            return DeviceLevel
+          else:
+            return 0
+       else: # response check failed
+          return 0
+   except Exception as e:
+       print("Oeps an Error")
+       print(f"NOT OK: {str(e)}")
+       return 0
+
+def PushSetting(id, leveltoset):
+   # Push settings to Domoticz
+   # Set a dimmable light to a certain level
+   # /json.htm?type=command&param=switchlight&idx=99&switchcmd=Set%20Level&level=6
+   #
+   print(DOMOTICZ_IP + "/json.htm?type=command&param=switchlight&idx=" + str(id) + "&switchcmd=Set%20Level&level=" + str(leveltoset))
+   r = requests.get(DOMOTICZ_IP + "/json.htm?type=command&param=switchlight&idx=" + str(id) + "&switchcmd=Set%20Level&level=" + str(leveltoset))
    siteresponse = r.json()
    if (r.ok): # response check is ok
-      DeviceLevel = int(siteresponse['result'][0]['Level'])
+      print("OK")
+      #DeviceLevel = int(siteresponse['result'][0]['Level'])
       #print(DeviceLevel)
-      DeviceState = siteresponse['result'][0]['Data']
+      #DeviceState = siteresponse['result'][0]['Data']
       #print(DeviceState)
-      if DeviceState == "Off":
-        return 0
-      elif DeviceLevel >= 0 and DeviceLevel <= 100: # Extra safety levels must be between 0 and 100
-        return DeviceLevel
-      else:
-        return 0
-   else: # response check failed
-      return 0
+      #if DeviceState == "Off":
+      #  return 0
+      #elif DeviceLevel >= 0 and DeviceLevel <= 100: # Extra safety levels must be between 0 and 100
+      #  return DeviceLevel
+      #else:
+      #  return 0
+   #else: # response check failed
+      #return 0
 
 
 if __name__ == '__main__':
@@ -47,5 +75,6 @@ if __name__ == '__main__':
   for key in sorted(id_name):
      print(key)
      print(getSetting(id_name[key]))
+  PushSetting(7297, 50)
   ########### Work in progress ############
 #while True:
