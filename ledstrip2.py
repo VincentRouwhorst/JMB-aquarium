@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 
+# Setup Raspberry Pi PWM pins
 GPIO.setmode(GPIO.BOARD)
 
 # Setup GPIO Pins
@@ -11,11 +12,11 @@ GPIO.setup(12, GPIO.OUT)
 
 # Set PWM instance and their frequency
 pwm12 = GPIO.PWM(12, 400)
-#pwm32 = GPIO.PWM(32, 60)
-#pwm33 = GPIO.PWM(33, 60)
-#pwm35 = GPIO.PWM(35, 60)
+#pwm32 = GPIO.PWM(32, 400)
+#pwm33 = GPIO.PWM(33, 400)
+#pwm35 = GPIO.PWM(35, 400)
 
-# Start PWM with 50% Duty Cycle
+# Start PWM with 0% Duty Cycle, OFF state
 pwm12.start(0)
 #pwm32.start(0)
 #pwm33.start(0)
