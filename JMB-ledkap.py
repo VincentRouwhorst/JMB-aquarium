@@ -14,7 +14,7 @@
 
 import requests
 import time
-#import datetime
+from datetime import datetime
 import json
 import chardet
 import RPi.GPIO as GPIO
@@ -44,34 +44,40 @@ DOMOTICZ_IP = 'http://127.0.0.1:8080'
 
 
 def getSetting(id):
-   #global id_name
-   #id_name[id]
+   global id_name
    try:
-       #print(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id))
-       r = requests.get(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id))
+       #print(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id_name[id]["idx"]))
+       r = requests.get(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id_name[id]["idx"]))
        siteresponse = r.json()
        if (r.ok): # response check is ok
           DeviceLevel = int(siteresponse['result'][0]['Level'])
           #print(DeviceLevel)
           DeviceState = siteresponse['result'][0]['Data']
           #print(DeviceState)
-          DeviceLastUpdate = siteresponse['result'][0]['LastUpdate']
-          print(DeviceLastUpdate)
-          print(type(DeviceLastUpdate))
+          DeviceLastUpdate = siteresponse['result'][0]['LastUpdate'].replace('-', '/')
+          id_name[id]["lastupdate"] = datetime.strptime(DeviceLastUpdate, "%Y/%m/%d %H:%M:%S")
+          print(id_name[id]["lastupdate"])
+          print(type(id_name[id]["lastupdate"]))
+          #
           if DeviceState == "Off":
             return 0
+            id_name[id]["lastlevel"] = 0
           elif DeviceState == "On":
             return 100
           elif DeviceLevel >= 0 and DeviceLevel <= 100: # Extra safety levels must be between 0 and 100
             return DeviceLevel
+            id_name[id]["lastlevel"] = Devicelevel
           else:
             return 0
+            id_name[id]["lastlevel"] = 0
        else: # response check failed
           return 0
+          id_name[id]["lastlevel"] = 0
    except Exception as e:
        print("Oeps an Error")
        print(f"NOT OK: {str(e)}")
        return 0
+       id_name[id]["lastlevel"] = 0
 
 def PushSetting(id, leveltoset):
    # Push settings to Domoticz
@@ -104,10 +110,10 @@ if __name__ == '__main__':
              "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : ''}}
   
   for key in sorted(id_name):
-     print(key)
-     print(getSetting(id_name[key]["idx"]))
-  PushSetting(id_name["JMB-C1"]["idx"], 100)
-  #pwm12.ChangeDutyCycle(getSetting(id_name["JMB-C1"]["idx"]))
+     print("key = " + key)
+     print(getSetting(key))
+  #PushSetting("JMB-C1", 100)
+  #pwm12.ChangeDutyCycle(getSetting("JMB-C1"))
   #pwm32.ChangeDutyCycle(getSetting(id_name["JMB-C2"]["idx"]))
   #pwm33.ChangeDutyCycle(getSetting(id_name["JMB-C3"]["idx"]))
   #pwm35.ChangeDutyCycle(getSetting(id_name["JMB-C4"]["idx"]))
