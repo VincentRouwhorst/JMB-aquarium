@@ -14,6 +14,7 @@
 
 import requests
 import time
+#import datetime
 import json
 import chardet
 import RPi.GPIO as GPIO
@@ -52,6 +53,9 @@ def getSetting(id):
           #print(DeviceLevel)
           DeviceState = siteresponse['result'][0]['Data']
           #print(DeviceState)
+          DeviceLastUpdate = siteresponse['result'][0]['LastUpdate']
+          print(DeviceLastUpdate)
+          print(type(DeviceLastUpdate))
           if DeviceState == "Off":
             return 0
           elif DeviceLevel >= 0 and DeviceLevel <= 100: # Extra safety levels must be between 0 and 100
@@ -92,7 +96,7 @@ if __name__ == '__main__':
   for key in sorted(id_name):
      print(key)
      print(getSetting(id_name[key]))
-  PushSetting(id_name["JMB-C1"], 50)
+  #PushSetting(id_name["JMB-C1"], 50)
   #pwm12.ChangeDutyCycle(getSetting(id_name["JMB-C1"]))
   #pwm32.ChangeDutyCycle(getSetting(id_name["JMB-C2"]))
   #pwm33.ChangeDutyCycle(getSetting(id_name["JMB-C3"]))
