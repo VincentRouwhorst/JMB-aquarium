@@ -2,10 +2,15 @@
 
 from datetime import datetime
 
-id_name = {"JMB-C1": {"idx" : 7297, "lastupdate" : ''}, "JMB-C2": 7298, "JMB-C3": 7299, "JMB-C4": 7300, "JMB-C5": 7301}
-#dict = {'device': 'JMB-1', 'age': 26}
+id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : ''}, 
+             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : ''}, 
+             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : ''}, 
+             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : ''}, 
+             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : ''}, 
+             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : ''}, 
+             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : ''}}
 
-print(id_name["JMB-C1"]["idx"])
+print(id_name["JMB-C1"])
 
 dt_string = "2022-01-02 20:54:10"
 dt_string = dt_string.replace('-', '/')
