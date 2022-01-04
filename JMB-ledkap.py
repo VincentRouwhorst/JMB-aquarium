@@ -55,9 +55,16 @@ def getSetting(id):
           DeviceState = siteresponse['result'][0]['Data']
           #print(DeviceState)
           DeviceLastUpdate = siteresponse['result'][0]['LastUpdate'].replace('-', '/')
-          id_name[id]["lastupdate"] = datetime.strptime(DeviceLastUpdate, "%Y/%m/%d %H:%M:%S")
-          print(id_name[id]["lastupdate"])
-          print(type(id_name[id]["lastupdate"]))
+          DeviceLastUpdate = datetime.strptime(DeviceLastUpdate, "%Y/%m/%d %H:%M:%S")
+          DeltaDate = id_name[id]["lastupdate"] - DeviceLastUpdate
+          #print("mem " + str(id_name[id]["lastupdate"]) + " -  read " + str(DeviceLastUpdate) + " = " + str(DeltaDate))
+          if DeltaDate.total_seconds() == 0 :
+            id_name[id]["changed"] = 0
+          else:
+            id_name[id]["changed"] = 1
+            print("Updated : " + str(id_name[id]["lastupdate"]))
+            id_name[id]["lastupdate"] = DeviceLastUpdate
+          #print(id_name[id]["changed"])
           #
           if DeviceState == "Off":
             return 0
@@ -101,17 +108,20 @@ if __name__ == '__main__':
   # Script has been called directly
 
   # Dictionary of switches to process, the key is for debuging
-  id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : ''}, 
-             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : ''}, 
-             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : ''}, 
-             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : ''}, 
-             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : ''}, 
-             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : ''}, 
-             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : ''}}
-  
+  id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : '', "changed" : 1}, 
+             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : '', "changed" : 1}, 
+             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : '', "changed" : 1}, 
+             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : '', "changed" : 1}, 
+             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : '', "changed" : 1}, 
+             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : '', "changed" : 1}, 
+             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : '', "changed" : 1}}
   for key in sorted(id_name):
-     print("key = " + key)
-     print(getSetting(key))
+     id_name[key]["lastupdate"] = datetime.now()
+  
+  while True:
+     for key in sorted(id_name):
+        print("key = " + key)
+        print(getSetting(key))
   #PushSetting("JMB-C1", 100)
   #pwm12.ChangeDutyCycle(getSetting("JMB-C1"))
   #pwm32.ChangeDutyCycle(getSetting(id_name["JMB-C2"]["idx"]))
