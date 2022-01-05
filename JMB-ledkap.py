@@ -19,29 +19,40 @@ import json
 import chardet
 import RPi.GPIO as GPIO
 
-DOMOTICZ_IP = 'http://127.0.0.1:8080'
+#DOMOTICZ_IP = 'http://127.0.0.1:8080'
+DOMOTICZ_IP = 'http://192.168.5.2:8080'
 
 # GPIO Setup Raspberry Pi PWM pins
-#GPIO.setmode(GPIO.BOARD)
+GPIO.setmode(GPIO.BOARD)
 
-# Setup GPIO Pins
-#GPIO.setup(12, GPIO.OUT)
-#GPIO.setup(32, GPIO.OUT)
-#GPIO.setup(33, GPIO.OUT)
-#GPIO.setup(35, GPIO.OUT)
+def StartPWM():
+   global pwm12
+   # Setup GPIO Pins
+   GPIO.setup(12, GPIO.OUT)
+   #GPIO.setup(32, GPIO.OUT)
+   #GPIO.setup(33, GPIO.OUT)
+   #GPIO.setup(35, GPIO.OUT)
 
-# Set PWM instance and their frequency
-#pwm12 = GPIO.PWM(12, 400)
-#pwm32 = GPIO.PWM(32, 400)
-#pwm33 = GPIO.PWM(33, 400)
-#pwm35 = GPIO.PWM(35, 400)
+   # Set PWM instance and their frequency
+   pwm12 = GPIO.PWM(12, 200)
+   #pwm32 = GPIO.PWM(32, 400)
+   #pwm33 = GPIO.PWM(33, 400)
+   #pwm35 = GPIO.PWM(35, 400)
 
-# Start PWM with 0% Duty Cycle, OFF state
-#pwm12.start(0)
-#pwm32.start(0)
-#pwm33.start(0)
-#pwm35.start(0)
+   # Start PWM with 0% Duty Cycle, OFF state
+   pwm12.start(0)
+   #pwm32.start(0)
+   #pwm33.start(0)
+   #pwm35.start(0)
 
+def StopPWM():
+   global pwm12
+   pwm12.stop(0)
+   #pwm32.stop(0)
+   #pwm33.stop(0)
+   #pwm35.stop(0)
+   # Cleans the GPIO
+   GPIO.cleanup()
 
 def getSetting(id):
    global id_name
@@ -118,18 +129,24 @@ if __name__ == '__main__':
   for key in sorted(id_name):
      id_name[key]["lastupdate"] = datetime.now()
   
-  while True:
-     for key in sorted(id_name):
-        print("key = " + key)
-        print(getSetting(key))
-  #PushSetting("JMB-C1", 100)
-  #pwm12.ChangeDutyCycle(getSetting("JMB-C1"))
-  #pwm32.ChangeDutyCycle(getSetting(id_name["JMB-C2"]["idx"]))
-  #pwm33.ChangeDutyCycle(getSetting(id_name["JMB-C3"]["idx"]))
-  #pwm35.ChangeDutyCycle(getSetting(id_name["JMB-C4"]["idx"]))
-  #time.sleep(10)
-  #pwm35.stop()
-  # Cleans the GPIO
-  #GPIO.cleanup()
+  StartPWM()
+  try:
+     while True:
+        for key in sorted(id_name):
+           getSetting(key)
+           #   print("key = " + key)
+           #   print(getSetting(key))
+           #PushSetting("JMB-C1", 100)
+           if id_name[key]["changed"] == 1:
+             print("UPDATE PWM SETTINGS : " + key)
+             pwm12.ChangeDutyCycle(getSetting(key))
+             #pwm32.ChangeDutyCycle(getSetting(id_name["JMB-C2"]["idx"]))
+             #pwm33.ChangeDutyCycle(getSetting(id_name["JMB-C3"]["idx"]))
+             #pwm35.ChangeDutyCycle(getSetting(id_name["JMB-C4"]["idx"]))
+        #time.sleep(2)
+  except KeyboardInterrupt:
+     StopPWM()
+     #pwm12.stop()
+     # Cleans the GPIO
+     #GPIO.cleanup()
 ########### Work in progress ############
-  #while True:

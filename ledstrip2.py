@@ -24,7 +24,7 @@ pwm12.start(0)
 
 try:
   while True:
-    for dutyCycle in range (0, 100, 5):
+    for dutyCycle in range (0, 100, 1):
       pwm12.ChangeDutyCycle(dutyCycle)
       #pwm32.ChangeDutyCycle(100-dutyCycle)
       #pwm33.ChangeDutyCycle(dutyCycle)
@@ -35,7 +35,7 @@ try:
          time.sleep(10)
          print("sleep A 10 seconds")
 
-    for dutyCycle in range (100, 0, -5):
+    for dutyCycle in range (100, 0, -1):
       pwm12.ChangeDutyCycle(dutyCycle)
       #pwm32.ChangeDutyCycle(100-dutyCycle)
       #pwm33.ChangeDutyCycle(dutyCycle)
@@ -43,8 +43,8 @@ try:
       time.sleep(0.5)
       print(dutyCycle)
       if dutyCycle == 100:
-	time.sleep(10)
-	print("sleep B 10 seconds")
+         time.sleep(10)
+         print("sleep B 10 seconds")
 
 except KeyboardInterrupt:
   pwm12.stop()
