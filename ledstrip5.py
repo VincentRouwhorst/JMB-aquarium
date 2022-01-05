@@ -3,7 +3,7 @@ import time
 
 LED=18
 pi = pigpio.pi()
-dc=10000
+dc=1000000
 pi.hardware_PWM(LED, 200, dc)
 time.sleep(1)
 
