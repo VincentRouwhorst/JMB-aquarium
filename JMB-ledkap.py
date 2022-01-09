@@ -71,9 +71,9 @@ def getSetting(id):
        siteresponse = r.json()
        if (r.ok): # response check is ok
           DeviceLevel = int(siteresponse['result'][0]['Level'])
-          print("Level" + str(DeviceLevel))
+          #print("Level" + str(DeviceLevel))
           DeviceState = siteresponse['result'][0]['Data']
-          print("State" + str(DeviceState))
+          #print("State" + str(DeviceState))
           DeviceLastUpdate = siteresponse['result'][0]['LastUpdate'].replace('-', '/')
           DeviceLastUpdate = datetime.strptime(DeviceLastUpdate, "%Y/%m/%d %H:%M:%S")
           DeltaDate = id_name[id]["lastupdate"] - DeviceLastUpdate
@@ -82,7 +82,7 @@ def getSetting(id):
             id_name[id]["changed"] = 0
           else:
             id_name[id]["changed"] = 1
-            print("Updated : " + str(id_name[id]["lastupdate"]))
+            print("Updated : " + str(id) + " - " + str(id_name[id]["lastupdate"]))
             id_name[id]["lastupdate"] = DeviceLastUpdate
           #print(id_name[id]["changed"])
           #
@@ -122,6 +122,16 @@ def PushSetting(id, leveltoset):
        print(f"NOT OK: {str(e)}")
        return 0
 
+def SunUP(id):
+   if id == 100:
+      global id_name
+      countdowntimer = 15 * 60 # 15 min * 60 sec = 900 sec
+      lamplevel = 100 # 0-100
+      for x in range(lamplevel):
+         print("SunUP")
+         time.sleep(countdowntimer/lamplevel)
+         return 1, x
+      return 0, 100
 
 
 if __name__ == '__main__':
@@ -135,16 +145,25 @@ if __name__ == '__main__':
              "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
              "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
              "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }}
+  # fill Dict with datetime and startup
   for key in sorted(id_name):
      id_name[key]["lastupdate"] = datetime.now()
-  
+
   UpdatePWM("JMB-C1", 0) # start at level 0%
   try:
      while True:
-        #for key in sorted(id_name):
-           #getSetting(key)
-        UpdatePWM("JMB-C1", getSetting("JMB-C1"))
-
+        for key in sorted(id_name):
+           if key.startswith("JMB-C"):
+              getSetting(key)
+              UpdatePWM("JMB-C1", getSetting("JMB-C1"))
+           elif key.startswith("JMB-SunU"):
+              #getSetting(key)
+              print(key + " - " + str(getSetting(key)))
+              #print(str(datetime.now() - id_name[key]["lastupdate"]))
+              #if id_name[key]["changed"] == 1:
+              #   print(key + " Delay proces ")
+              #   print(str(id_name[key]["changed"]))
+              #   print(str(id_name[key]["lastlevel"]))
            #   print("key = " + key)
            #   print(getSetting(key))
            #PushSetting("JMB-C1", 100)
@@ -156,7 +175,7 @@ if __name__ == '__main__':
              #pwm35.ChangeDutyCycle(getSetting(id_name["JMB-C4"]["idx"]))
         #time.sleep(2)
   except KeyboardInterrupt:
-     print("ByeBye")
+     print(" --== ByeBye ==-- ")
      #StopPWM()
      #pwm12.stop()
      # Cleans the GPIO
