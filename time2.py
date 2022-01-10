@@ -60,14 +60,15 @@ id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : '', "c
 #    time.sleep(1)
 
 T1 = datetime.now()
-T2 = T1 + timedelta(minutes=5)
+T2 = T1 + timedelta(minutes=1)
 
-print(T1)
-print(T2)
+#print(T1)
+#print(T2)
 
-EndLevel = 100
-Lastlevel = 0
-ToGoLevel = EndLevel - Lastlevel # 55
+Sun = "Down"   # Sun Up and Down setting for function switch
+EndLevel = 0   # preset if Sun Up Down
+Lastlevel = 100
+ToGoLevel = abs(EndLevel - Lastlevel) # abs is used for creating positive value
 ToGoTime = T2 - datetime.now()
 ActionTimeDelta = ToGoTime.total_seconds() / ToGoLevel
 print(ActionTimeDelta)
@@ -76,12 +77,19 @@ TimeNextAction = datetime.now() + timedelta(seconds=ActionTimeDelta) # for first
 loopcount = 0 # set counter for loop
 
 while True:
-   ToGoLevel = EndLevel - Lastlevel # 55
+   ToGoLevel = abs(EndLevel - Lastlevel) # abs is used for creating positive value
    ToGoTime = T2 - datetime.now() # aftellen
-   ActionTimeDelta = ToGoTime.total_seconds() / ToGoLevel
+   if ToGoLevel > 0 and ToGoLevel <= 100:  # prevent dev by zero and end of function
+      ActionTimeDelta = ToGoTime.total_seconds() / ToGoLevel   # Action Steps in seconds to take
+   else:
+      print("---=== End of function ===---")
+      break
    if TimeNextAction <= datetime.now():
       loopcount += 1
-      Lastlevel += 1
+      if Sun == "Up":
+         Lastlevel += 1
+      elif Sun == "Down":
+         Lastlevel -= 1
       print(str(Lastlevel) + " " + str(loopcount) + " Action : " + str(TimeNextAction) + " Now : " + str(datetime.now()))
       #time.sleep(0.5)
       TimeNextAction = datetime.now() + timedelta(seconds=ActionTimeDelta)
