@@ -1,4 +1,5 @@
-#!/usr/bin/python --------------------------------------
+#! /usr/bin/env python3
+#--------------------------------------
 #
 #              JMB-ledkap.py
 #
@@ -11,14 +12,10 @@
 # Domoticz Json documentation
 # https://www.domoticz.com/wiki/Domoticz_API/JSON_URL's#Custom_Sensor
 #--------------------------------------
+#Must start "sudo systemctl start pigpiod"
 
-import requests
-import time
+import requests, time, json, chardet, pigpio
 from datetime import datetime
-import json
-import chardet
-#import RPi.GPIO as GPIO
-import pigpio
 
 #DOMOTICZ_IP = 'http://127.0.0.1:8080'
 DOMOTICZ_IP = 'http://192.168.5.2:8080'
@@ -29,39 +26,23 @@ pi = pigpio.pi()
 
 
 def UpdatePWM(id, dc):
-   global id_name
-   #global pi 
-   #LED= id_name[id]["pin"]
-   #pi = pigpio.pi()
-   dc= dc * 10000  # duty cycle is 10 % * 10000
-   pi.hardware_PWM(id_name[id]["pin"], 200, dc)
-   #global pwm12
-   # Setup GPIO Pins
-   #GPIO.setup(12, GPIO.OUT)
-   #GPIO.setup(32, GPIO.OUT)
-   #GPIO.setup(33, GPIO.OUT)
-   #GPIO.setup(35, GPIO.OUT)
+   #HardwarePWM = [12, 13, 18, 19]   # 12/13/18/19 Raspberry PI 2 hardware PWM pins
+   #print("UpdatePWM : " + str(id) + " : " + str(dc) + " pin = " + str(id_name[id]["pin"]) + " changed = " + str(id_name[id]["changed"]) + "  lastlevel = " + str(id_name[id]["lastlevel"]))
+   #if id_name[id]["pin"] in HardwarePWM:
+   #   dc= dc * 10000  # duty cycle is 10 % * 10000
+   #   pi.hardware_PWM(id_name[id]["pin"], 200, dc) # gpio pin, freq, duty cycle
+   #else:
+      #software PWM user_gpio:= 0-31
+      #dutycycle:= 0-range (range defaults to 255).
+   if id_name[id]["changed"] == 1 :
+      dc = (255/100) * dc
+      pi.set_PWM_frequency(id_name[id]["pin"], 200)  # set freq
+      pi.set_PWM_dutycycle(id_name[id]["pin"], dc)   # set duty cycle
 
-   # Set PWM instance and their frequency
-   #pwm12 = GPIO.PWM(12, 200)
-   #pwm32 = GPIO.PWM(32, 400)
-   #pwm33 = GPIO.PWM(33, 400)
-   #pwm35 = GPIO.PWM(35, 400)
-
-   # Start PWM with 0% Duty Cycle, OFF state
-   #pwm12.start(0)
-   #pwm32.start(0)
-   #pwm33.start(0)
-   #pwm35.start(0)
 
 #def StopPWM():
-   #global pwm12
-   #pwm12.stop(0)
-   #pwm32.stop(0)
-   #pwm33.stop(0)
-   #pwm35.stop(0)
    # Cleans the GPIO
-   #GPIO.cleanup()
+   #pi.stop()
 
 def getSetting(id):
    global id_name
@@ -82,15 +63,15 @@ def getSetting(id):
             id_name[id]["changed"] = 0
           else:
             id_name[id]["changed"] = 1
-            print("Updated : " + str(id) + " - " + str(id_name[id]["lastupdate"]))
+            print("Updated : " + str(id) + "  Level = " + str(DeviceLevel) + "  Time = " + str(id_name[id]["lastupdate"]))
             id_name[id]["lastupdate"] = DeviceLastUpdate
           #print(id_name[id]["changed"])
           #
           if DeviceState == "Off":
             return 0
             id_name[id]["lastlevel"] = 0
-          elif DeviceState == "On":
-            return 100
+          elif DeviceState == "On":   # DeviceLevel eg "On" and "Level" : 48
+            return DeviceLevel
           elif DeviceLevel >= 0 and DeviceLevel <= 100: # Extra safety levels must be between 0 and 100
             return DeviceLevel
             id_name[id]["lastlevel"] = Devicelevel
@@ -138,27 +119,29 @@ if __name__ == '__main__':
   # Script has been called directly
 
   # Dictionary of switches to process, the key is for debuging
-  id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 18}, 
-             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
-             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
-             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
-             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
-             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }, 
-             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 32 }}
+  # for reference see cli pinout command
+  id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 12 },
+             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 13 },
+             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 18 },
+             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 19 },
+             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : '', "changed" : 1, "pin" : 4 },
+             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : '', "changed" : 1, },
+             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : '', "changed" : 1, }}
   # fill Dict with datetime and startup
   for key in sorted(id_name):
      id_name[key]["lastupdate"] = datetime.now()
+  # end fill Dict
 
   UpdatePWM("JMB-C1", 0) # start at level 0%
   try:
      while True:
         for key in sorted(id_name):
            if key.startswith("JMB-C"):
-              getSetting(key)
-              UpdatePWM("JMB-C1", getSetting("JMB-C1"))
-           elif key.startswith("JMB-SunU"):
               #getSetting(key)
-              print(key + " - " + str(getSetting(key)))
+              UpdatePWM(key, getSetting(key))
+           elif key.startswith("JMB-SunU"):
+              getSetting(key)
+              #print(key + " - " + str(getSetting(key)))
               #print(str(datetime.now() - id_name[key]["lastupdate"]))
               #if id_name[key]["changed"] == 1:
               #   print(key + " Delay proces ")
@@ -173,11 +156,8 @@ if __name__ == '__main__':
              #pwm32.ChangeDutyCycle(getSetting(id_name["JMB-C2"]["idx"]))
              #pwm33.ChangeDutyCycle(getSetting(id_name["JMB-C3"]["idx"]))
              #pwm35.ChangeDutyCycle(getSetting(id_name["JMB-C4"]["idx"]))
-        #time.sleep(2)
+           time.sleep(0.1)
   except KeyboardInterrupt:
+     pi.stop() # Cleans the GPIO and Disconnect from local Pi
      print(" --== ByeBye ==-- ")
-     #StopPWM()
-     #pwm12.stop()
-     # Cleans the GPIO
-     #GPIO.cleanup()
 ########### Work in progress ############

@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import time
 from datetime import datetime, timedelta
 
@@ -76,6 +77,7 @@ while True:
  for key in sorted(id_name):
     if id_name[key]["TimeEnd"] != '':   # if not ended start function
        SunControl(key, "Up")
+       time.sleep(0.5)   # slow down program speed to ease CPU use
     #else:
        #print("---=== End of function ===---")
        #time.sleep(0.5)
