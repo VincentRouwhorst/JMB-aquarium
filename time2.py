@@ -76,7 +76,8 @@ def SunControl(id, Sun):
 while True:
  for key in sorted(id_name):
     if id_name[key]["TimeEnd"] != '':   # if not ended start function
-       SunControl(key, "Up")
+       sun = SunControl(key, "Up")
+       print(str(sun))
        time.sleep(0.5)   # slow down program speed to ease CPU use
     #else:
        #print("---=== End of function ===---")
