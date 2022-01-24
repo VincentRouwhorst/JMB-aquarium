@@ -35,12 +35,8 @@ def UpdatePWM(id, dc):
       pi.set_PWM_dutycycle(id_name[id]["pin"], dc)   # set duty cycle
 
 
-#def StopPWM():
-   # Cleans the GPIO
-   #pi.stop()
-
 def getSetting(id):
-   global id_name
+   #global firststart
    try:
        #print(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id_name[id]["idx"]))
        r = requests.get(DOMOTICZ_IP + "/json.htm?type=devices&rid=" + str(id_name[id]["idx"]))
@@ -54,13 +50,18 @@ def getSetting(id):
           DeviceLastUpdate = siteresponse['result'][0]['LastUpdate'].replace('-', '/')
           DeviceLastUpdate = datetime.strptime(DeviceLastUpdate, "%Y/%m/%d %H:%M:%S")
           DeltaDate = id_name[id]["lastupdate"] - DeviceLastUpdate
+          #DeltaFirststart = datetime.now() - firststart
+          #print(str(DeltaFirststart.total_seconds()))
           #print("mem " + str(id_name[id]["lastupdate"]) + " -  read " + str(DeviceLastUpdate) + " = " + str(DeltaDate))
           if DeltaDate.total_seconds() == 0 :
             id_name[id]["changed"] = 0
-          else:
+          #elif DeltaFirststart.total_seconds() <= 5 and id == "JMB-SunUp":   # for first run do not start SunControl
+          #  id_name[id]["changed"] = 0
+          else:   # regular change
             id_name[id]["changed"] = 1
             print("Updated : " + str(id) + "  Level = " + str(DeviceLevel) + "  Time = " + str(id_name[id]["lastupdate"]))
             id_name[id]["lastupdate"] = DeviceLastUpdate
+            id_name[id]["LastupdateLocal"] = datetime.now()
           #print(id_name[id]["changed"])
           #
           if DeviceState == "Off":
@@ -83,17 +84,18 @@ def getSetting(id):
        return 0
        id_name[id]["lastlevel"] = 0
 
+
 def PushSetting(id, leveltoset):
    # Push settings to Domoticz
    # Set a dimmable light to a certain level
    # /json.htm?type=command&param=switchlight&idx=99&switchcmd=Set%20Level&level=6
    #
    try:
-       print(DOMOTICZ_IP + "/json.htm?type=command&param=switchlight&idx=" + str(id) + "&switchcmd=Set%20Level&level=" + str(leveltoset))
+       #print(DOMOTICZ_IP + "/json.htm?type=command&param=switchlight&idx=" + str(id) + "&switchcmd=Set%20Level&level=" + str(leveltoset))
        r = requests.get(DOMOTICZ_IP + "/json.htm?type=command&param=switchlight&idx=" + str(id) + "&switchcmd=Set%20Level&level=" + str(leveltoset))
        siteresponse = r.json()
-       if (r.ok): # response check is ok
-          print("OK")
+       #if (r.ok): # response check is ok
+       #   print("OK")
    except Exception as e:
        print("Oeps an Error")
        print(f"NOT OK: {str(e)}")
@@ -133,29 +135,28 @@ def SunControl(id, Sun):
 
 
 
-
 if __name__ == '__main__':
   # Script has been called directly
 
   # Dictionary of switches to process, the key is for debuging
   # for reference see cli raspberry pi pinout command for "pin"
   # "Label" {"domotiz_idx", "domoticz_lastupdate", "domoticz_lastlevel", "TimeNextAction level change", "TimeDelay in min", "TimeEnd function", "pin gpio"} 
-  id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 12 },
-             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 13 },
-             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 18 },
-             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 19 },
-             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 4 },
-             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "SunDirection" : ''},
-             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "SunDirection" : ''}}
-  # fill Dict with datetime and startup
+  id_name = {"JMB-C1":      {"idx" : 7297, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 12, "LastupdateLocal" : '' },
+             "JMB-C2":      {"idx" : 7298, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 13, "LastupdateLocal" : '' },
+             "JMB-C3":      {"idx" : 7299, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 18, "LastupdateLocal" : '' },
+             "JMB-C4":      {"idx" : 7300, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" : 19, "LastupdateLocal" : '' },
+             "JMB-C5":      {"idx" : 7301, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "pin" :  4, "LastupdateLocal" : '' },
+             "JMB-SunUp":   {"idx" : 7304, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "SunDirection" : '', "LastupdateLocal" : ''},
+             "JMB-SunDown": {"idx" : 7305, "lastupdate" : '', "lastlevel" : '', "DeviceState" : '', "changed" : 1, "TimeNextAction" : '', "TimeDelay" : 1, "TimeEnd" : '', "SunDirection" : '', "LastupdateLocal" : ''}}
+  # fill Dict with datetime and startsetup
   for key in sorted(id_name):
      id_name[key]["lastupdate"] = datetime.now()
+     #id_name[key]["LastupdateLocal"] = datetime.now()
      id_name[key]["lastlevel"] = 0  # first run setup
-     ###for test fil TimeEnd###
-     #id_name[key]["TimeEnd"] = datetime.now() + timedelta(minutes=id_name[key]["TimeDelay"])  # at buttonpress set TimeEnd to finish
-  # end fill Dict
-
-  #UpdatePWM("JMB-C1", 0) # start at level 0%
+  # sort keys, then get values from original - fast
+  id_name = {k: id_name[k] for k in sorted(id_name)}
+  # end fill and sort Dict
+  firststart = datetime.now()
   try:
      while True:
         for key in sorted(id_name):
@@ -167,6 +168,11 @@ if __name__ == '__main__':
            elif key.startswith("JMB-SunU"):
               SunDirection = getSetting(key)
               # function buttonpress
+              DeltaFirstRun = datetime.now() - firststart
+              #print(str(DeltaFirstRun.total_seconds()))
+              if DeltaFirstRun.total_seconds() <= 2:
+                 print("---=== First Run keep " + str(key) + " off ===---")
+                 id_name[key]["changed"] = 0
               if id_name[key]["DeviceState"] == "On" and id_name[key]["changed"] == 1:
                  id_name[key]["SunDirection"] = "Up"
                  for subkey in sorted(id_name):
@@ -175,23 +181,7 @@ if __name__ == '__main__':
                  id_name[key]["SunDirection"] = "Down"
                  for subkey in sorted(id_name):
                     id_name[subkey]["TimeEnd"] = datetime.now() + timedelta(minutes=id_name[subkey]["TimeDelay"])  # at buttonpress set TimeEnd to finish
-
-           #if id_name[key]["TimeEnd"] != '':   # if not ended start function
-                #SunValue = SunControl(key, "Up")
-                #PushSetting(id_name[key]["idx"], SunValue)
-              #print(key + " - " + str(getSetting(key)))
-              #print(str(datetime.now() - id_name[key]["lastupdate"]))
-              #if id_name[key]["changed"] == 1:
-              #   print(key + " Delay proces ")
-              #   print(str(id_name[key]["changed"]))
-              #   print(str(id_name[key]["lastlevel"]))
-           #   print("key = " + key)
-           #   print(getSetting(key))
-           #PushSetting("JMB-C1", 100)
-           #if id_name[key]["changed"] == 1:
-             #print("UPDATE PWM SETTINGS : " + key)
            time.sleep(0.1)
   except KeyboardInterrupt:
      pi.stop() # Cleans the GPIO and Disconnect from local Pi
      print(" --== ByeBye ==-- ")
-########### Work in progress ############
